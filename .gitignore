@@ -2,4 +2,5 @@ data/
 *.csv
 *.parquet
 *.pdf
+**/shared/
 

@@ -11,3 +11,4 @@ services:
     environment:
       - ENVIRONMENT=dev
       - TESTING=0
+    
