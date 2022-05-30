@@ -33,7 +33,7 @@ async def ingest_data(event: Request):
     error_field = pipe.event_check(event_dict)
     if error_field:
         raise HTTPException(status_code=406, detail=f"{error_field} must be present in event.")
-    pipe.ingest_raw(event_dict)
+    await pipe.ingest_raw(event_dict)
     logger.info(f'POST/ingest/ precessed correctly.')
 
 

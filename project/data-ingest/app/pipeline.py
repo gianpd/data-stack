@@ -3,20 +3,16 @@ import sys
 import pathlib
 import json
 import logging
+import zipfile
 
 from requests import get
 logging.basicConfig(stream=sys.stdout, format='%(asctime)-15s %(message)s',
-                level=logging.INFO, datefmt=None)
+                level=logging.DEBUG, datefmt=None)
 logger = logging.getLogger("data-ingestion-pipeline")
 
 from dataclasses import dataclass
 
-from io import BytesIO
-import pandas as pd
-
-from datetime import datetime
-
-import shutil
+from app.utils import get_datetime_suffix, EVENT_PATH
 
 
 from typing import List, Dict, Optional
@@ -30,26 +26,25 @@ MUST_HAVE_FIELDS = [
     "status", # the operation’s result - [success, fail]
 ]
 
-def get_suffix():
-    n = datetime.now()
-    return datetime.strftime(n, '%Y%m%d_%s')
-
 
 @dataclass
 class DataIngestPipeline:
-    def ingest_raw(self, event: Dict) -> Dict:
+    async def ingest_raw(self, event: Dict) -> None:
         """
         It allows to save the received event to the disk, as received by the server (without perform any preprocessing).
 
         --Parameters:
          - event: Dict, the event as received by the server.
 
-        return -> bool 
+        return -> None
         """
-        suffix = get_suffix()
         try:
-            with open(f'shared/event_{suffix}.json', '+w') as f:
+            suffix = get_datetime_suffix()
+            fname = EVENT_PATH + f'/event_{suffix}.json'
+            logger.debug(f'trying to write a json to {fname} ...')
+            with open(fname, 'x') as f:
                 json.dump(event, f)
+                return
         except:
             raise DataIngestException(f" Error in DataIngestPipeline: {sys.exc_info()[0]} {sys.exc_info()[1]}") 
 
@@ -69,8 +64,7 @@ class DataIngestPipeline:
                 return field
         logger.info('Data ingest> event check passed.')
         return None
-
-
+        
 
 class DataIngestException(Exception):
     pass
