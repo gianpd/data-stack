@@ -6,10 +6,6 @@ import os
 import sys
 import json
 import pathlib
-import logging
-logging.basicConfig(stream=sys.stdout, format='%(asctime)-15s %(message)s',
-                level=logging.INFO, datefmt=None)
-logger = logging.getLogger("DLCM")
 
 from utils import *
 

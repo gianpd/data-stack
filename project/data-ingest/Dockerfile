@@ -1,6 +1,6 @@
 FROM python:3.10.4-slim-buster
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src/home
 
 # set environment variables
 # Prevents Python from writing pyc files to disc
@@ -8,8 +8,10 @@ WORKDIR /usr/src/app
 ENV PYTHONDONTWRITEBYTECODE 1 
 ENV PYTHONUNBUFFERED 1
 
-COPY ./requirements.txt .
+COPY . .
 RUN python -m pip install --upgrade pip && \
     pip install python-multipart && \
     pip install -r requirements.txt 
+
+CMD bash bootstrap.sh
 

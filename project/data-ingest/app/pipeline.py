@@ -5,14 +5,9 @@ import json
 import logging
 import zipfile
 
-from requests import get
-logging.basicConfig(stream=sys.stdout, format='%(asctime)-15s %(message)s',
-                level=logging.DEBUG, datefmt=None)
-logger = logging.getLogger("data-ingestion-pipeline")
-
 from dataclasses import dataclass
 
-from app.utils import get_datetime_suffix, EVENT_PATH
+from app.utils import get_datetime_suffix, EVENT_PATH, logger
 
 
 from typing import List, Dict, Optional
