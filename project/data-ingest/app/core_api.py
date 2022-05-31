@@ -20,6 +20,11 @@ from functools import lru_cache, wraps
 from datetime import datetime, timedelta
 
 def timed_lru_cache(seconds: int, maxsize: int =128):
+    """
+    Decorator function: allows to save on a LRU cache the received events till the expire time is over.
+
+    The decorated function will save the cache events to the disk if the expire time is over.
+    """
     def wrapper_cache(func):
         func = lru_cache(maxsize=maxsize)(func)
         func.lifetime = timedelta(seconds=seconds)
@@ -29,13 +34,19 @@ def timed_lru_cache(seconds: int, maxsize: int =128):
             if datetime.utcnow() >= func.expiration:
                 func.cache_clear()
                 func.expiration = datetime.utcnow() + func.lifetime
-                return func(*args, **kwargs)
-            return {"Response": "in cache"}
+                return func(*args, **kwargs) # save events to disk
+            return {"Response": "in cache"} # no expire time: keep events on cache
         return wrapped_func
     return wrapper_cache
 
 @timed_lru_cache(seconds=10)
 def ingest(cache: str):
+    """
+    Decorated function must save the recorder events on disk when the expire time is over.
+
+    It must receive string *args because the LRU cache needs to keep elements on an hash table.
+    Therefore objects must be hashable (have the __hash__ method).
+    """
     logger.info(f'Loading events on disk ...')
     cache = literal_eval(cache)
     for _ in range(len(cache)):
