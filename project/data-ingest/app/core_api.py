@@ -1,30 +1,60 @@
+from calendar import c
 import os
 import sys
 import json
 import pathlib
 import logging
-logging.basicConfig(stream=sys.stdout, format='%(asctime)-15s %(message)s',
-                level=logging.INFO, datefmt=None)
-logger = logging.getLogger("data-ingestion")
+from typing import Dict
 
-from io import BytesIO
 from fastapi import APIRouter, HTTPException, File, UploadFile, Request
-import pandas as pd
 
 from app.pipeline import DataIngestPipeline
+from app.utils import logger
 
 pipe = DataIngestPipeline()
 
 router = APIRouter()
+
+from ast import literal_eval
+from functools import lru_cache, wraps
+from datetime import datetime, timedelta
+
+def timed_lru_cache(seconds: int, maxsize: int =128):
+    def wrapper_cache(func):
+        func = lru_cache(maxsize=maxsize)(func)
+        func.lifetime = timedelta(seconds=seconds)
+        func.expiration = datetime.utcnow() + func.lifetime
+        @wraps(func)
+        def wrapped_func(*args, **kwargs):
+            if datetime.utcnow() >= func.expiration:
+                func.cache_clear()
+                func.expiration = datetime.utcnow() + func.lifetime
+                return func(*args, **kwargs)
+            return {"Response": "in cache"}
+        return wrapped_func
+    return wrapper_cache
+
+@timed_lru_cache(seconds=10)
+def ingest(cache: str):
+    logger.info(f'Loading events on disk ...')
+    cache = literal_eval(cache)
+    for _ in range(len(cache)):
+        pipe.ingest_raw(cache.pop())
+    logger.info(f'cache flushed -> current len {len(cache)}...')
+    return {"Response": "ingest"}
+
+
+cache = []
 
 @router.post("/", response_model=None, status_code=201)
 async def ingest_data(event: Request):
     """
     CORE_API POST ingest method: exposed POST method for receiving events raw data.
     """
+    global cache
     try:
         event_dict = await event.json()
-        logger.info(f'Received event: {event_dict}')
+        # logger.info(f'Received event: {type(event_dict), event_dict}')
     except json.JSONDecodeError as e:
         logger.error(e)
         raise HTTPException(status_code=500, detail=str(e))
@@ -33,8 +63,13 @@ async def ingest_data(event: Request):
     error_field = pipe.event_check(event_dict)
     if error_field:
         raise HTTPException(status_code=406, detail=f"{error_field} must be present in event.")
-    await pipe.ingest_raw(event_dict)
-    logger.info(f'POST/ingest/ precessed correctly.')
+    
+    # append to cache received event -> when time is expired flush the cache and save to disk
+    cache.append(event_dict)
+    return ingest(str(cache))
+
+    
+
 
 
 

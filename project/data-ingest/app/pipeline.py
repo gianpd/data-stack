@@ -2,15 +2,14 @@ import os
 import sys
 import pathlib
 import json
-import logging
-import zipfile
+
+from uuid import uuid4
 
 from dataclasses import dataclass
 
 from app.utils import get_datetime_suffix, EVENT_PATH, logger
 
-
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 
 MUST_HAVE_FIELDS = [
     "client.user_id", # the ID of the user that did the upload or the download
@@ -24,7 +23,7 @@ MUST_HAVE_FIELDS = [
 
 @dataclass
 class DataIngestPipeline:
-    async def ingest_raw(self, event: Dict) -> None:
+    def ingest_raw(self, event: Dict) -> None:
         """
         It allows to save the received event to the disk, as received by the server (without perform any preprocessing).
 
@@ -35,7 +34,7 @@ class DataIngestPipeline:
         """
         try:
             suffix = get_datetime_suffix()
-            fname = EVENT_PATH + f'/event_{suffix}.json'
+            fname = EVENT_PATH + f'/event_{suffix}_{uuid4().hex[:7]}.json'
             logger.debug(f'trying to write a json to {fname} ...')
             with open(fname, 'x') as f:
                 json.dump(event, f)
@@ -43,7 +42,7 @@ class DataIngestPipeline:
         except:
             raise DataIngestException(f" Error in DataIngestPipeline: {sys.exc_info()[0]} {sys.exc_info()[1]}") 
 
-    def event_check(self, event: Dict) -> bool:
+    def event_check(self, event: Dict) -> Union[None, str]:
         """
         Event checker: checks if some crucial fields are present in the received event.
 

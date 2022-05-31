@@ -1,10 +1,8 @@
-echo "Data-Ingest container started ..."
-echo "Application: $APPLICATION"
+echo " - Data-Ingest container started ..."
+echo " - Application: $APPLICATION"
 
 export ROOT_FOLDER=$(pwd)
-export list_dir=$(ls)
 echo " - ROOT_FOLDER:    "$ROOT_FOLDER
-echo " - List dir:  "$list_dir
 
 if [ $APPLICATION == "zip-events" ]; then
   cd app
