@@ -9,6 +9,8 @@ services:
       - 5010:5010
     env_file: 
       - ./.env
+    depends_on:
+      - web-db
   
   web-db:
     build: './project/db'
