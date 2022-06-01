@@ -7,18 +7,10 @@ from uuid import uuid4
 
 from dataclasses import dataclass
 
-from app.utils import get_datetime_suffix, EVENT_PATH, logger
+from app.utils import get_datetime_suffix, EVENT_PATH, logger, MUST_HAVE_FIELDS
 
 from typing import List, Dict, Optional, Union
 
-MUST_HAVE_FIELDS = [
-    "client.user_id", # the ID of the user that did the upload or the download
-    "direction", 
-    "timestamp", # when the event was sent to the server
-    "size", # the total size of the uploaded/downloaded payload, in bytes
-    "time.backend", # the time needed to transfer the payload, in milliseconds
-    "status", # the operation’s result - [success, fail]
-]
 
 
 @dataclass
@@ -56,7 +48,7 @@ class DataIngestPipeline:
         keys = list(event.keys())
         for field in MUST_HAVE_FIELDS:
             if field not in keys:
-                logger.error(field, 'not in keys')
+                #logger.error(field, 'not in keys')
                 return field
         logger.info('Data ingest> event check passed.')
         return None

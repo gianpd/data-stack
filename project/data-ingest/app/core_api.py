@@ -9,38 +9,18 @@ from typing import Dict
 from fastapi import APIRouter, HTTPException, File, UploadFile, Request
 
 from app.pipeline import DataIngestPipeline
-from app.utils import logger
+from app.utils import logger, timed_lru_cache
+
+from ast import literal_eval
 
 pipe = DataIngestPipeline()
 
 router = APIRouter()
 
-from ast import literal_eval
-from functools import lru_cache, wraps
-from datetime import datetime, timedelta
-
-def timed_lru_cache(seconds: int, maxsize: int =128):
-    """
-    Decorator function: allows to save on a LRU cache the received events till the expire time is over.
-
-    The decorated function will save the cache events to the disk IF the expire time is over.
-    """
-    def wrapper_cache(func):
-        func = lru_cache(maxsize=maxsize)(func)
-        func.lifetime = timedelta(seconds=seconds)
-        func.expiration = datetime.utcnow() + func.lifetime
-        @wraps(func)
-        def wrapped_func(*args, **kwargs):
-            if datetime.utcnow() >= func.expiration:
-                func.cache_clear()
-                func.expiration = datetime.utcnow() + func.lifetime
-                return func(*args, **kwargs) # save events to disk
-            return {"Response": "in cache"} # no expire time: keep events on cache
-        return wrapped_func
-    return wrapper_cache
+cache = []
 
 @timed_lru_cache(seconds=10)
-def ingest(cache: str):
+def ingest_timed_events(cache: str):
     """
     Decorated function must save the recorder events on disk when the expire time is over.
 
@@ -53,9 +33,6 @@ def ingest(cache: str):
         pipe.ingest_raw(cache.pop())
     logger.info(f'cache flushed -> current len {len(cache)}...')
     return {"Response": "ingest"}
-
-
-cache = []
 
 @router.post("/", response_model=None, status_code=201)
 async def ingest_data(event: Request):
@@ -77,7 +54,7 @@ async def ingest_data(event: Request):
     
     # append to cache received event -> when time is expired flush the cache and save to disk
     cache.append(event_dict)
-    return ingest(str(cache))
+    return ingest_timed_events(str(cache))
 
     
 
