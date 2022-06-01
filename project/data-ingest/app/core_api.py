@@ -23,7 +23,7 @@ def timed_lru_cache(seconds: int, maxsize: int =128):
     """
     Decorator function: allows to save on a LRU cache the received events till the expire time is over.
 
-    The decorated function will save the cache events to the disk if the expire time is over.
+    The decorated function will save the cache events to the disk IF the expire time is over.
     """
     def wrapper_cache(func):
         func = lru_cache(maxsize=maxsize)(func)

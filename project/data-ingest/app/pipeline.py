@@ -32,12 +32,14 @@ class DataIngestPipeline:
 
         return -> None
         """
+        log_index = "data-ingest-pipe>"
         try:
             suffix = get_datetime_suffix()
             fname = EVENT_PATH + f'/event_{suffix}_{uuid4().hex[:7]}.json'
-            logger.debug(f'trying to write a json to {fname} ...')
+            logger.debug(f'{log_index} trying to write a json to {fname} ...')
             with open(fname, 'x') as f:
                 json.dump(event, f)
+                logger.debug(f'{log_index} JSON saved to {fname} ...')
                 return
         except:
             raise DataIngestException(f" Error in DataIngestPipeline: {sys.exc_info()[0]} {sys.exc_info()[1]}") 
