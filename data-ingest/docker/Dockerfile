@@ -8,8 +8,6 @@ WORKDIR /usr/src/app
 ENV PYTHONDONTWRITEBYTECODE 1 
 ENV PYTHONUNBUFFERED 1
 
-COPY . .
-
 # RUN curl -fsSL https://packages.redis.io/gpg | sudo gpg --dearmor -o \
 #         /usr/share/keyrings/redis-archive-keyring.gpg && \
 #     echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] 
@@ -17,6 +15,7 @@ COPY . .
 #         | sudo tee /etc/apt/sources.list.d/redis.list && \
 #     sudo apt-get update && sudo apt-get install redis
 
+COPY docker/requirements.txt /app/requirements.txt
 # install system dependencies
 RUN apt-get update \
   && apt-get -y install netcat gcc\
@@ -24,8 +23,8 @@ RUN apt-get update \
 
 RUN python -m pip install --upgrade pip && \
     pip install python-multipart && \
-    pip install -r requirements.txt 
+    pip install -r /app/requirements.txt 
 
-
+COPY ./app .
 CMD bash bootstrap.sh
 

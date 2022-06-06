@@ -7,10 +7,9 @@ from uuid import uuid4
 
 from dataclasses import dataclass
 
-from app.utils import get_datetime_suffix, EVENT_PATH, logger, MUST_HAVE_FIELDS
+from utils import get_datetime_suffix, EVENT_PATH, logger, MUST_HAVE_FIELDS
 
 from typing import List, Dict, Optional, Union
-
 
 
 @dataclass

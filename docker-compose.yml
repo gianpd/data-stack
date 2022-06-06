@@ -1,19 +1,35 @@
 version: '3.8'
 
 services:
-  web:
-    build: './project/data-ingest'
+
+  data-ingest:
+    build: 
+      context: ./data-ingest
+      dockerfile: docker/Dockerfile
+
     volumes:
-      - ./project/data-ingest/:/usr/src/app
+      - ./data-ingest/shared:/usr/src/app/shared
     ports:
       - 5010:5010
     env_file: 
       - ./.env
-    depends_on:
-      - web-db
   
-  web-db:
-    build: './project/db'
+  db-ingest:
+    build: 
+      context: ./data-ingest
+      dockerfile: docker/Dockerfile.db_ingest
+
+    volumes:
+      - ./data-ingest/shared:/usr/src/home/shared
+    env_file:
+      - ./.env
+    depends_on:
+      - server-db
+  
+  server-db:
+    build: 
+      context: ./data-ingest/docker/db
+      dockerfile: Dockerfile
     expose:  
       - 5432
     env_file:

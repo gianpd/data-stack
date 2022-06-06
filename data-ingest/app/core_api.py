@@ -2,8 +2,8 @@ import json
 
 from fastapi import APIRouter, HTTPException, File, UploadFile, Request
 
-from app.pipeline import DataIngestPipeline
-from app.utils import logger, timed_lru_cache
+from pipeline import DataIngestPipeline
+from utils import logger, timed_lru_cache
 
 from ast import literal_eval
 
