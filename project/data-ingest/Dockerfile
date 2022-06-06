@@ -17,6 +17,11 @@ COPY . .
 #         | sudo tee /etc/apt/sources.list.d/redis.list && \
 #     sudo apt-get update && sudo apt-get install redis
 
+# install system dependencies
+RUN apt-get update \
+  && apt-get -y install netcat gcc\
+  && apt-get clean
+
 RUN python -m pip install --upgrade pip && \
     pip install python-multipart && \
     pip install -r requirements.txt 

@@ -3,4 +3,5 @@ data/
 *.parquet
 *.pdf
 **/shared/
+**/.pytest_cache
 
