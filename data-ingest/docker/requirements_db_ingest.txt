@@ -1,0 +1,14 @@
+fastapi==0.78.0
+h11==0.12.0
+typing-extensions==3.10.0.2
+uvicorn==0.17.6
+asyncpg==0.24.0
+pytest==6.2.4
+pytest-cov==3.0.0
+requests==2.26.0
+gunicorn==20.1.0
+starlette==0.19.1
+numpy==1.22
+pandas==1.4.2
+tortoise-orm[asyncpg]==0.19.1
+# redis=4.3.1
