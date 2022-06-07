@@ -14,15 +14,15 @@ class Events(models.Model):
     user_id = fields.CharField(max_length=255, pk=True)
     direction = fields.CharField(max_length=255)
     size  = fields.IntField()
-    status = fields.DecimalField(max_digits=5, decimal_places=3)
+    status = fields.CharField(max_length=255)
     transfer_time = fields.FloatField()
     transfer_speed = fields.FloatField()
-    timestamp = fields.IntField()
+    timestamp = fields.BigIntField()
     #timestamp = fields.DatetimeField(auto_new_add=True)
 
     def __str__(self):
         return self.user_id
 
 
-UsersSchema = pydantic_model_creator(Users)
-EventsSchema = pydantic_model_creator(Events)
+Users_pydantic = pydantic_model_creator(Users)
+Events_pydantic = pydantic_model_creator(Events)
