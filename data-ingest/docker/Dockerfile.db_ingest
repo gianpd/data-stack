@@ -20,4 +20,4 @@ RUN python -m pip install --upgrade pip && \
 
 COPY ./db-ingest .
 
-CMD ["python", "preprocessing.py"]
+CMD ["python", "db.py"]

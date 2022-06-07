@@ -4,7 +4,8 @@ from models.tortoise import Events, Users
 from tortoise.query_utils import Prefetch
 
 
-async def post(payload) -> int:
-    users = Users(**payload)
-    await users.save()
-    return users.id
+def post(payload, users=True) -> int:
+    element = Users(**payload) if users else Events(**payload)
+    element.save()
+    return element.id 
+
