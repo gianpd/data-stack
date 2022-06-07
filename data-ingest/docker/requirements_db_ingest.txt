@@ -11,4 +11,5 @@ starlette==0.19.1
 numpy==1.22
 pandas==1.4.2
 tortoise-orm[asyncpg]==0.19.1
+aerich==0.6.3
 # redis=4.3.1

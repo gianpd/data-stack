@@ -1,35 +1,48 @@
-import logging
+from distutils.command.config import config
 import os
+from sqlite3 import OperationalError
 import sys
 
-from fastapi import FastAPI
-from tortoise import Tortoise, run_async
-from tortoise.contrib.fastapi import register_tortoise
+from tortoise import Tortoise, run_async, connections
 
+import logging
 logging.basicConfig(stream=sys.stdout, format='%(asctime)-15s %(message)s',
                 level=logging.INFO, datefmt=None)
-logger = logging.getLogger("uvicorn")
+logger = logging.getLogger("db-ingest")
+
+
+# TORTOISE_ORM = {
+#     "connections": {
+#         "default": {
+#             "engine": "tortoise.backends.asyncpg",
+#             "default": os.environ.get("DATABASE_URL"),
+#             'credentials': {
+#                 'host': 'localhost',
+#                 'port': '5432',
+#                 'user': os.environ.get('POSTGRES_USER'),
+#                 'password': 'POSTGRES_PASSWORD',
+#                 'database': 'db_dev',
+#             }
+#         }
+#     },
+
+#     "apps": {
+#         "models": {
+#             "models": ["models.tortoise"],
+#             "default_connection": "default"
+#             }
+#         }
+# }
 
 TORTOISE_ORM = {
     "connections": {"default": os.environ.get("DATABASE_URL")},
     "apps": {
         "models": {
-            "models": ["app.models.tortoise", "aerich.models"],
+            "models": ["models.tortoise", "aerich.models"],
             "default_connection": "default",
         },
     },
 }
-
-
-# def init_db(app: FastAPI) -> None:
-#     register_tortoise(
-#         app,
-#         db_url=os.environ.get("DATABASE_URL"),
-#         modules={"models": ["app.models.tortoise"]},
-#         generate_schemas=True,
-#         add_exception_handlers=True,
-#     )
-
 
 async def generate_schema() -> None:
     """
@@ -37,14 +50,19 @@ async def generate_schema() -> None:
     """
     
     logger.info("Initializing Tortoise ...")
-
-    await Tortoise.init(
-        db_url=os.environ.get("DATABASE_URL"),
-        modules={"models": ["models.tortoise"]},
-    )
+    db_url = os.environ.get('DATABASE_URL')
+    logger.debug(f'Trying to connect to {db_url} ...')
+    # await Tortoise.init(db_url=os.environ.get('DATABASE_URL'), modules={"models": ["models.tortoise"]})
+    await Tortoise.init(config=TORTOISE_ORM)
     logger.info("Generating database schema via Tortoise ...")
     await Tortoise.generate_schemas()
-    await Tortoise.close_connections()
+    client = connections.get("default")
+    try:
+        result = await client.execute_query("SELECT * FROM 'Users'")
+        logger.info(result)
+    except OperationalError as e:
+        logger.error(e)
+
 
 
 if __name__ == "__main__":

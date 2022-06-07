@@ -18,6 +18,7 @@ services:
     build: 
       context: ./data-ingest
       dockerfile: docker/Dockerfile.db_ingest
+    command: tail -f /dev/null
 
     volumes:
       - ./data-ingest/shared:/usr/src/home/shared

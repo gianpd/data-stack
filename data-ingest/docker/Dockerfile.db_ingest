@@ -19,5 +19,6 @@ RUN python -m pip install --upgrade pip && \
     pip install -r /home/requirements_db_ingest.txt 
 
 COPY ./db-ingest .
+RUN chmod +x /usr/src/home/entrypoint.sh
 
-CMD ["python", "db.py"]
+ENTRYPOINT ["/usr/src/home/entrypoint.sh"]
