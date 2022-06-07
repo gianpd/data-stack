@@ -45,7 +45,7 @@ def preprocess_events(events: list[str], output_path: str) -> None:
     events_df = events_df.loc[:, TO_KEEP]
     events_df = events_df.rename(columns={'id': 'user_id'})
     logger.info(events_df.head(2))
-    ### TRANSFER SPEED
+    ### TRANSFER SPEED && TRANSFER TIME
     logger.info(f'Adding new columns to events ...')
     K = 1e3
     events_df['size'] = events_df['size'].apply(lambda x: x / K)

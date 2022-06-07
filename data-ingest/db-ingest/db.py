@@ -1,10 +1,12 @@
 import os
 import sys
 
+from typing import Union
+
 from tortoise import Tortoise, run_async, connections
 
 import crud
-from models.tortoise import Events_pydantic
+from models.tortoise import Events_pydantic, Users_pydantic
 
 import pandas as pd
 
@@ -23,14 +25,20 @@ TORTOISE_ORM = {
     },
 }
 
-async def run(event: Events_pydantic, users=False) -> None:
+async def run_post(event: Union(Events_pydantic, Users_pydantic), users=False) -> None:
     """
-    Applying the schema to the database in its final state and connect to it.
+    Asynch method for uploading rows to both Users and Events DB table. It is called via run_async
+    tortoise method, which is a context manager, closing the connection when it's done.
+
+    ---Parameters
+      -event: the pydantic obj as expected by the ORM model
+      -users: bool (the type of the event: Users or Events)
+
+    return None
     """
     logger.info("Initializing Tortoise ...")
     db_url = os.environ.get('DATABASE_URL')
     logger.debug(f'Trying to connect to {db_url} ...')
-    # await Tortoise.init(db_url=os.environ.get('DATABASE_URL'), modules={"models": ["models.tortoise"]})
     await Tortoise.init(config=TORTOISE_ORM)
     logger.info("Generating database schema via Tortoise ...")
     await Tortoise.generate_schemas()
@@ -50,4 +58,4 @@ if __name__ == "__main__":
     event = Events_pydantic.parse_obj(event)
     logger.info(f'Trying to upload event: {event} to Events Table')
     logger.info(f'Events pydantic {event}')
-    run_async(run(event))
+    run_async(run_post(event))

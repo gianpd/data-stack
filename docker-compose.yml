@@ -17,7 +17,7 @@ services:
     build: 
       context: ./data-ingest
       dockerfile: docker/Dockerfile.db_ingest
-    command: /bin/bash -c "python main.py && tail -f /dev/null"
+    command: /bin/bash -c "python main.py --events_dir shared && tail -f /dev/null"
     volumes:
       - ./data-ingest/shared:/usr/src/home/shared
     env_file:
