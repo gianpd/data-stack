@@ -3,7 +3,7 @@ import sys
 from functools import lru_cache
 from pydantic import AnyUrl, BaseSettings
 
-from app.utils import logger
+from utils import logger
 
 
 class Settings(BaseSettings):

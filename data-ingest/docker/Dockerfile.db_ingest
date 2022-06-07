@@ -1,0 +1,24 @@
+FROM python:3.10.4-slim-buster
+
+WORKDIR /usr/src/home
+
+# set environment variables
+# Prevents Python from writing pyc files to disc
+# Prevents Python from buffering stdout and stderr
+ENV PYTHONDONTWRITEBYTECODE 1 
+ENV PYTHONUNBUFFERED 1
+
+# install system dependencies
+RUN apt-get update \
+  && apt-get -y install netcat gcc postgresql\
+  && apt-get clean
+
+COPY docker/requirements_db_ingest.txt /home/requirements_db_ingest.txt
+
+RUN python -m pip install --upgrade pip && \
+    pip install -r /home/requirements_db_ingest.txt 
+
+COPY ./db-ingest .
+RUN chmod +x /usr/src/home/entrypoint.sh
+
+ENTRYPOINT ["/usr/src/home/entrypoint.sh"]
