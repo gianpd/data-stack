@@ -3,7 +3,6 @@ import sys
 import pathlib
 
 import time
-import shutil
 
 import pandas as pd
 
@@ -41,6 +40,7 @@ def main(events_dir: str, output_csv_path: str, users=False) -> None:
             events = list(map(lambda x: str(x), pathlib.Path(events_dir).glob('*.json')))
             logger.info(f'Retrived {len(events)} events.')
             if len(events):
+                post_events = []
                 preprocess_events(events, output_csv_path)
                 logger.info('Reading preprocessed events df:')
                 df = pd.read_csv(output_csv_path, index_col=0)
@@ -50,12 +50,15 @@ def main(events_dir: str, output_csv_path: str, users=False) -> None:
                     event = dict(row[1])
                     event['id'] = idx
                     event = Events_pydantic.parse_obj(event) # Tortoise ORM pydandic event obj
-                    logger.info(f'Trying to upload event: {event} to Events Table')
-                    run_async(run_post(event, users=users))
+                    logger.info(f'Event: {event} retrived')
+                    post_events.append(event)
+                logger.info('Running async DB POST ...')
+                run_async(run_post(post_events, users=users))
                 logger.info('Removing json events ...')        
                 for path in events:
                     #TODO: all processed events could be zipped instead to be removed.
                     _ = os.remove(path)
+                logger.info('json events removed') 
             time.sleep(30)
     except FileNotFoundError as e:
         raise ValueError(e)

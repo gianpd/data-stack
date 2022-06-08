@@ -1,9 +1,9 @@
 import os
 import sys
 
-from typing import Union
+from typing import Union, List
 
-from tortoise import Tortoise, run_async, connections
+from tortoise import Tortoise, run_async
 
 import crud
 from models.tortoise import Events_pydantic, Users_pydantic
@@ -25,13 +25,13 @@ TORTOISE_ORM = {
     },
 }
 
-async def run_post(event: Union[Events_pydantic, Users_pydantic], users=False) -> None:
+async def run_post(events: Union[List[Events_pydantic], List[Users_pydantic]], users=False) -> None:
     """
     Asynch method for uploading rows to both Users and Events DB table. It is called via run_async
     tortoise method, which is a context manager, closing the connection when it's done.
 
     ---Parameters
-      -event: the pydantic obj as expected by the ORM model
+      -events: the pydantic objects as expected by the ORM model (list of pydantic objs)
       -users: bool (the type of the event: Users or Events)
 
     return None
@@ -42,8 +42,10 @@ async def run_post(event: Union[Events_pydantic, Users_pydantic], users=False) -
     await Tortoise.init(config=TORTOISE_ORM)
     logger.info("Generating database schema via Tortoise ...")
     await Tortoise.generate_schemas()
-    i = await crud.post(event, users=users)
-    logger.info(f'Events {i} created')
+    for event in events:
+        i = await crud.post(event, users=users)
+        logger.info(f'Events {i} created')
+    return
 
 
 
