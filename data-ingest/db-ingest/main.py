@@ -2,11 +2,14 @@ import os
 import sys
 import pathlib
 
+import time
+import shutil
+
 import pandas as pd
 
 from tortoise import run_async
 
-from db import run
+from db import run_post
 from preprocessing import *
 from models.tortoise import Events_pydantic
 
@@ -32,21 +35,31 @@ def main(events_dir: str, output_csv_path: str, users=False) -> None:
     """
     logger.info('db-ingest> Preprocessing started ...')
     try:
-        events = list(map(lambda x: str(x), pathlib.Path(events_dir).glob('*.json')))
-        logger.info(f'Retrived {len(events)} events.')
-        preprocess_events(events, output_csv_path)
+        idx = 1
+        logger.info(f'events DB schema: {Events_pydantic.schema_json(indent=4)}')
+        while True:
+            events = list(map(lambda x: str(x), pathlib.Path(events_dir).glob('*.json')))
+            logger.info(f'Retrived {len(events)} events.')
+            if len(events):
+                preprocess_events(events, output_csv_path)
+                logger.info('Reading preprocessed events df:')
+                df = pd.read_csv(output_csv_path, index_col=0)
+                logger.info(df.head())
+                for row in df.iterrows():
+                    idx += 1
+                    event = dict(row[1])
+                    event['id'] = idx
+                    event = Events_pydantic.parse_obj(event) # Tortoise ORM pydandic event obj
+                    logger.info(f'Trying to upload event: {event} to Events Table')
+                    run_async(run_post(event, users=users))
+                logger.info('Removing json events ...')        
+                for path in events:
+                    #TODO: all processed events could be zipped instead to be removed.
+                    _ = os.remove(path)
+            time.sleep(30)
     except FileNotFoundError as e:
         raise ValueError(e)
         
-    logger.info('Reading preprocessed events df:')
-    df = pd.read_csv(output_csv_path, index_col=0)
-    logger.info(df.head())
-    event = dict(df.iloc[0])
-    logger.info(f'events DB schema: {Events_pydantic.schema_json(indent=4)}')
-    event = Events_pydantic.parse_obj(event) # Tortoise ORM pydandic event obj
-    logger.info(f'Trying to upload event: {event} to Events Table')
-    logger.info(f'Events pydantic {event}')
-    run_async(run(event, users=users))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='DB-INGEST main python process.')

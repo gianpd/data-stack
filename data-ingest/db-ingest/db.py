@@ -25,7 +25,7 @@ TORTOISE_ORM = {
     },
 }
 
-async def run_post(event: Union(Events_pydantic, Users_pydantic), users=False) -> None:
+async def run_post(event: Union[Events_pydantic, Users_pydantic], users=False) -> None:
     """
     Asynch method for uploading rows to both Users and Events DB table. It is called via run_async
     tortoise method, which is a context manager, closing the connection when it's done.

@@ -33,7 +33,7 @@ def preprocess_events(events: list[str], output_path: str) -> None:
         raise ValueError('No events path')
 
     p = pathlib.Path(output_path)
-    logger.info(f'Output csv path: {output_path}')
+    # logger.info(f'Output csv path: {output_path}')
     output_path = output_path if p.suffix == 'csv' else p.stem + '.csv'
     logger.info(f'Output csv path: {output_path}')
 
