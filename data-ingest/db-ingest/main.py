@@ -34,32 +34,23 @@ def main(events_dir: str, output_csv_path: str, users=False) -> None:
     """
     logger.info('db-ingest> Preprocessing started ...')
     try:
-        idx = 1
         logger.info(f'events DB schema: {Events_pydantic.schema_json(indent=4)}')
         while True:
             events = list(map(lambda x: str(x), pathlib.Path(events_dir).glob('*.json')))
             logger.info(f'Retrived {len(events)} events.')
             if len(events):
-                post_events = []
-                preprocess_events(events, output_csv_path)
-                logger.info('Reading preprocessed events df:')
-                df = pd.read_csv(output_csv_path, index_col=0)
-                logger.info(df.head())
-                for row in df.iterrows():
-                    idx += 1
-                    event = dict(row[1])
-                    event['id'] = idx
-                    event = Events_pydantic.parse_obj(event) # Tortoise ORM pydandic event obj
-                    logger.info(f'Event: {event} retrived')
-                    post_events.append(event)
+                events_df = preprocess_events(events, output_csv_path)
+                logger.info(events_df.head())
+                logger.info('Creating db events ...')
+                post_events = create_db_events(events_df)
                 logger.info('Running async DB POST ...')
                 run_async(run_post(post_events, users=users))
                 logger.info('Removing json events ...')        
                 for path in events:
                     #TODO: all processed events could be zipped instead to be removed.
-                    _ = os.remove(path)
+                    _ = pathlib.Path(path).unlink()
                 logger.info('json events removed') 
-            time.sleep(30)
+            time.sleep(10)
     except FileNotFoundError as e:
         raise ValueError(e)
         

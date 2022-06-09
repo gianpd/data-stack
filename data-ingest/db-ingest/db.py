@@ -3,12 +3,11 @@ import sys
 
 from typing import Union, List
 
-from tortoise import Tortoise, run_async
+from tortoise import Tortoise
 
 import crud
 from models.tortoise import Events_pydantic, Users_pydantic
 
-import pandas as pd
 
 import logging
 logging.basicConfig(stream=sys.stdout, format='%(asctime)-15s %(message)s',
@@ -49,15 +48,15 @@ async def run_post(events: Union[List[Events_pydantic], List[Users_pydantic]], u
 
 
 
-if __name__ == "__main__":
-    output_path = 'events_preprocessing.csv'
-    logger.info('Reading preprocessed events df:')
-    df = pd.read_csv(output_path, index_col=0)
-    logger.info(df.head())
+# if __name__ == "__main__":
+    # output_path = 'events_preprocessing.csv'
+    # logger.info('Reading preprocessed events df:')
+    # df = pd.read_csv(output_path, index_col=0)
+    # logger.info(df.head())
 
-    event = dict(df.iloc[0])
-    logger.info(f'events DB schema: {Events_pydantic.schema_json(indent=4)}')
-    event = Events_pydantic.parse_obj(event)
-    logger.info(f'Trying to upload event: {event} to Events Table')
-    logger.info(f'Events pydantic {event}')
-    run_async(run_post(event))
+    # event = dict(df.iloc[0])
+    # logger.info(f'events DB schema: {Events_pydantic.schema_json(indent=4)}')
+    # event = Events_pydantic.parse_obj(event)
+    # logger.info(f'Trying to upload event: {event} to Events Table')
+    # logger.info(f'Events pydantic {event}')
+    # run_async(run_post(event))

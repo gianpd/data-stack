@@ -3,6 +3,8 @@ import sys
 import pathlib
 import json
 
+from typing import Union, List, Dict, Optional
+
 import pandas as pd
 pd.set_option('display.max_columns', None)
 
@@ -21,21 +23,18 @@ def get_event_records(event_paths: list) -> list:
             logger.info(f'Retrived event {event_paths[i]}: {dd[i]}')
     return dd
 
-def preprocess_events(events: list[str], output_path: str) -> None:
+def preprocess_events(events: list[str], output_path: Optional[str] = None) -> pd.DataFrame:
     """
     Load the recorded events and create a dataframe with the wanted columns, such that the Table Events DB SCHEMA.
 
     --Parameters
      - events: list of str (paths of the events)
-     - output_path: str (output path with extension .csv)
+     - output_path: Optional[str] (output path with extension .csv if exists the df is saved to a csv.)
+
+    return pd.DataFrame (the event preprocessed dataframe)
     """
     if len(events) == 0:
         raise ValueError('No events path')
-
-    p = pathlib.Path(output_path)
-    # logger.info(f'Output csv path: {output_path}')
-    output_path = output_path if p.suffix == 'csv' else p.stem + '.csv'
-    logger.info(f'Output csv path: {output_path}')
 
     dd = get_event_records(events)
     logger.info(f'Generating events df starting from {len(dd)} records...')
@@ -56,10 +55,18 @@ def preprocess_events(events: list[str], output_path: str) -> None:
     ### Save preprocessing events csv
     events_df = events_df.loc[:, ['user_id', 'direction', 'size', 'status', 'transfer_time', 'transfer_speed', 'timestamp']]
     logger.info(f'Final events df: {events_df.head(2)}')
-    events_df.to_csv(output_path)
-    logger.info(f'Final events csv saved at {output_path}.')
-    return
+    if output_path:
+        p = pathlib.Path(output_path)
+        output_path = output_path if p.suffix == 'csv' else p.stem + '.csv'
+        logger.info(f'Output csv path: {output_path}')
+        events_df.to_csv(output_path)
+        logger.info(f'Final events csv saved at {output_path}.')
+    return events_df
 
+def create_db_events(event_df: pd.DataFrame) -> List[Dict]:
+    post_events = [dict(row[1]) for row in event_df.iterrows()]
+    return post_events
+    
 
 if __name__ == '__main__':
     events = list(map(lambda x: str(x), pathlib.Path('shared').glob('*.json')))
