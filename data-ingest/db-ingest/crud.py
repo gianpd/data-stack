@@ -10,6 +10,7 @@ async def post(payload, users=True) -> int:
     # element = await Users.create(**payload.dict(exclude_unset=True)) if users \
     #     else await Events.create(**payload.dict(exclude_unset=True))
     element = await Users(**payload) if users else await Events(**payload)
+    await element.save()
     return element.user_id
 
 async def get_event(id: int) -> Union[dict, None]:

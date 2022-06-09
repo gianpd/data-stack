@@ -38,7 +38,7 @@ def main(events_dir: str, output_csv_path: str, users=False) -> None:
         while True:
             events = list(map(lambda x: str(x), pathlib.Path(events_dir).glob('*.json')))
             logger.info(f'Retrived {len(events)} events.')
-            if len(events):
+            if len(events) > 20: # to be tuned
                 events_df = preprocess_events(events, output_csv_path)
                 logger.info(events_df.head())
                 logger.info('Creating db events ...')
